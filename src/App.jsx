@@ -1,5 +1,9 @@
 import "./App.css";
 import styled from "styled-components";
+import { Canvas } from "@react-three/fiber";
+import { Suspense } from "react";
+import { Earth } from "./components/earth";
+import { TopSection } from "./components/topSection";
 import { Map } from "./components/map";
 
 const CanvasContainer = styled.div`
@@ -8,7 +12,17 @@ const CanvasContainer = styled.div`
 `;
 
 function App() {
-  return <Map />
+  return (
+    <CanvasContainer>
+      <TopSection />
+      <Canvas>
+        <Suspense fallback={null}>
+          <Earth />
+        </Suspense>
+      </Canvas>
+      <Map />
+    </CanvasContainer>
+  );
 }
 
 export default App;

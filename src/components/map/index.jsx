@@ -1,19 +1,23 @@
 import React from "react";
+import styled from "styled-components";
 
 const LATITUDE_RANGE = 180;
 const LONGITUDE_RANGE = 180;
+
+const MapContainer = styled.div`
+    color: white;
+`;
 
 export class Map extends React.Component {
     constructor() {
         super();
         this.state = {
-            temperature: Array(),
-            initialized: false,
+            temperature: this.initTempMatrix(),
         };
     }
 
     initTempMatrix() {
-        const temperature = this.state.temperature.slice();
+        const temperature = Array();
         for (let i = 0; i < LATITUDE_RANGE; i++) {
             let row = Array(LONGITUDE_RANGE);
             for (let j = 0; j < LONGITUDE_RANGE; j++) {
@@ -21,17 +25,14 @@ export class Map extends React.Component {
             }
             temperature.push(row);
         }
-        this.setState({ temperature: temperature });
+        return temperature;
     }
 
     render() {
-        if (!this.state) {
-            this.initTempMatrix();
-            this.setState({ initialized: false });
-        }
-        console.log(this.state.temperature);
         return (
-            <h2>Test</h2>
+            <MapContainer>
+                <h2>Test</h2>
+            </MapContainer>
         );
     }
 
