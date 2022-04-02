@@ -1,9 +1,9 @@
-'use strict';
+import React from "react";
 
 const LATITUDE_RANGE = 180;
 const LONGITUDE_RANGE = 180;
 
-class Map extends React.Component {
+export class Map extends React.Component {
     constructor() {
         super();
         this.state = {
@@ -29,16 +29,10 @@ class Map extends React.Component {
             this.initTempMatrix();
             this.setState({ initialized: false });
         }
+        console.log(this.state.temperature);
         return (
             <h2>Test</h2>
         );
     }
 
 }
-
-// ========================================
-
-ReactDOM.render(
-    <Map />,
-    document.getElementById("root")
-);
