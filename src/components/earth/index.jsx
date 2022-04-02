@@ -1,30 +1,23 @@
-import React, { useRef } from "react";
+import React, { useRef,useState  } from "react";
 import { useFrame, useLoader } from "@react-three/fiber";
 import { OrbitControls, Stars } from "@react-three/drei";
 import * as THREE from "three";
 
-import EarthDayMap from "../../assets/textures/8k_earth_daymap.jpg";
-import EarthNormalMap from "../../assets/textures/8k_earth_normal_map.jpg";
-import EarthSpecularMap from "../../assets/textures/8k_earth_specular_map.jpg";
-import EarthCloudsMap from "../../assets/textures/8k_earth_clouds.jpg";
-import { TextureLoader } from "three";
+//import EarthDayMap from "../../assets/textures/8k_earth_daymap.jpg";
+//import EarthNormalMap from "../../assets/textures/8k_earth_normal_map.jpg";
+//import EarthSpecularMap from "../../assets/textures/8k_earth_specular_map.jpg";
+//import EarthCloudsMap from "../../assets/textures/8k_earth_clouds.jpg";
+
 
 export function Earth(props) {
-  const [colorMap, normalMap, specularMap, cloudsMap] = useLoader(
-    TextureLoader,
-    [EarthDayMap, EarthNormalMap, EarthSpecularMap, EarthCloudsMap]
-  );
 
-  const earthRef = useRef();
-  const cloudsRef = useRef();
-
-  useFrame(({ clock }) => {
-    const elapsedTime = clock.getElapsedTime();
-
-    earthRef.current.rotation.y = elapsedTime / 6;
-    cloudsRef.current.rotation.y = elapsedTime / 6;
-  });
-
+  const ref = useRef()
+  // Hold state for hovered and clicked events
+  const [hovered, hover] = useState(true)
+  const [clicked, click] = useState(true)
+  // Subscribe this component to the render-loop, rotate the mesh every frame
+  useFrame((state, delta) => (ref.current.rotation.x += 0.01))
+  // Return the view, these are regular Threejs elements expressed in JSX
   return (
     <>
       {/* <ambientLight intensity={1} /> */}
@@ -37,34 +30,18 @@ export function Earth(props) {
         saturation={0}
         fade={true}
       />
-      <mesh ref={cloudsRef} position={[0, 0, 3]}>
-        <sphereGeometry args={[1.005, 32, 32]} />
-        <meshPhongMaterial
-          map={cloudsMap}
-          opacity={0.4}
-          depthWrite={true}
-          transparent={true}
-          side={THREE.DoubleSide}
-        />
-      </mesh>
-      <mesh ref={earthRef} position={[0, 0, 3]}>
-        <sphereGeometry args={[1, 32, 32]} />
-        <meshPhongMaterial specularMap={specularMap} />
-        <meshStandardMaterial
-          map={colorMap}
-          normalMap={normalMap}
-          metalness={0.4}
-          roughness={0.7}
-        />
-        {/* <OrbitControls
-          enableZoom={true}
-          enablePan={true}
-          enableRotate={true}
-          zoomSpeed={0.6}
-          panSpeed={0.5}
-          rotateSpeed={0.4}
-        /> */}
+  
+      <mesh
+        {...props}
+        ref={ref}
+        scale={clicked ? 1.5 : 1}
+        onClick={(event) => {console.log("click happens");click(!clicked)}}
+        onPointerOver={(event) => {console.log("click happens");hover(true)}}
+        onPointerOut={(event) => {console.log("click happens");hover(false)}}>
+        <sphereGeometry args={[1, 12, 12]} />
+        <meshStandardMaterial color={hovered ? 'orange' : 'hotpink'} />
       </mesh>
     </>
   );
-}
+  }
+  
