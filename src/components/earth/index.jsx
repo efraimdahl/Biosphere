@@ -1,12 +1,30 @@
 import React, { useRef,useState  } from "react";
-import { useFrame, useLoader } from "@react-three/fiber";
-import { OrbitControls, Stars } from "@react-three/drei";
+import { extend, useFrame, useLoader } from "@react-three/fiber";
+import {Stars, shaderMaterial } from "@react-three/drei";
+import glsl from "babel-plugin-glsl/macro";
 import * as THREE from "three";
 
-//import EarthDayMap from "../../assets/textures/8k_earth_daymap.jpg";
-//import EarthNormalMap from "../../assets/textures/8k_earth_normal_map.jpg";
-//import EarthSpecularMap from "../../assets/textures/8k_earth_specular_map.jpg";
-//import EarthCloudsMap from "../../assets/textures/8k_earth_clouds.jpg";
+const WaveShaderMaterial = shaderMaterial(
+  //Uniform
+  {uColor: new THREE.Color(0.0,0,0)},
+  // Vertex Shader
+  glsl`
+    void main(){
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
+    }
+  `,
+  //Fragment Shader
+  glsl`
+    uniform vec3 uColor;
+    void main(){
+      gl_FragColor = vec4(uColor,1.0);
+    }
+  `
+
+  
+);
+
+extend({ WaveShaderMaterial})
 
 
 export function Earth(props) {
@@ -16,7 +34,7 @@ export function Earth(props) {
   const [hovered, hover] = useState(true)
   const [clicked, click] = useState(true)
   // Subscribe this component to the render-loop, rotate the mesh every frame
-  useFrame((state, delta) => (ref.current.rotation.x += 0.01))
+  //useFrame((state, delta) => (ref.current.rotation.x += 0.01))
   // Return the view, these are regular Threejs elements expressed in JSX
   return (
     <>
@@ -35,11 +53,11 @@ export function Earth(props) {
         {...props}
         ref={ref}
         scale={clicked ? 1.5 : 1}
-        onClick={(event) => {console.log("click happens");click(!clicked)}}
+        onClick={(e) => {console.log("click happens");click(!clicked)}}
         onPointerOver={(event) => {console.log("click happens");hover(true)}}
         onPointerOut={(event) => {console.log("click happens");hover(false)}}>
         <sphereGeometry args={[1, 12, 12]} />
-        <meshStandardMaterial color={hovered ? 'orange' : 'hotpink'} />
+        <waveShaderMaterial uColor={"green"}/>
       </mesh>
     </>
   );
