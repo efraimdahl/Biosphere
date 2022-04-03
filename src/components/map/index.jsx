@@ -1,4 +1,5 @@
 import React, { useRef, useState } from "react";
+import { Vector3 } from "three";
 import { useFrame } from "@react-three/fiber";
 
 const LATITUDE_RANGE = 10;
@@ -10,11 +11,15 @@ export function Tile(props) {
     const mesh = useRef()
     // Hold state for hovered and clicked events
     const [inView, setInView] = useState(false);
+    const [worldPos, setWorldPos] = useState(new Vector3())
     // Subscribe this component to the render-loop, rotate the mesh every frame
 
     useFrame((state, delta) => {
-        //const worldPos = mesh.current.position.applyMatrix4(mesh.current.matrixWorld);
-        //setInView(worldPos.z > 0);
+        worldPos.copy(mesh.current.position);
+        worldPos.applyMatrix4(mesh.current.matrixWorld);
+        worldPos.normalize();
+        worldPos.multiplyScalar(props.radius);
+        setInView(worldPos.y > 0.5);
     });
 
     const r = ((props.temperature / 10) * 255) << 16;
@@ -25,7 +30,7 @@ export function Tile(props) {
             ref={mesh}
             scale={1}>
             <sphereGeometry args={[TILE_RADIUS, Number(props.temperature), Number(props.temperature)]} />
-            <meshStandardMaterial color={r | b} />
+            <meshStandardMaterial color={inView ? "yellow" : r | b} />
         </mesh >
     );
 }
@@ -45,7 +50,7 @@ export function Map(props) {
             const Y_cartesian = props.radius * Math.cos(lat_rad) * Math.sin(lon_rad);
             const Z_cartesian = props.radius * Math.sin(lat_rad);
 
-            tiles.push(<Tile key={keyCounter} position={[X_cartesian, Y_cartesian, Z_cartesian]} temperature={row[j]} />)
+            tiles.push(<Tile key={keyCounter} position={[X_cartesian, Y_cartesian, Z_cartesian]} radius={props.radius} temperature={row[j]} />)
             keyCounter++;
         }
         temperature.push(row);
