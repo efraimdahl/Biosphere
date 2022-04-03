@@ -7,10 +7,10 @@ const LONGITUDE_RANGE = 10;
 
 const TILE_RADIUS = 0.05;
 
-const CAMERA_DISTANCE = 10;
+const CAMERA_DISTANCE = 100;
 
 function heatCool(zCoord) {
-    return (1 / ((CAMERA_DISTANCE - zCoord) * (CAMERA_DISTANCE - zCoord))) - (1 / (CAMERA_DISTANCE * CAMERA_DISTANCE));
+    return - 0.05 * (zCoord);//100 * (1 / ((CAMERA_DISTANCE - zCoord) * (CAMERA_DISTANCE - zCoord))) - (1 / (CAMERA_DISTANCE * CAMERA_DISTANCE));
 }
 
 export function Tile(props) {
@@ -24,16 +24,20 @@ export function Tile(props) {
     // Subscribe this component to the render-loop, rotate the mesh every frame
     useFrame((state, delta) => {
         worldPos.copy(mesh.current.position);
-        worldPos.applyMatrix4(mesh.current.matrixWorld);
+        worldPos.applyMatrix4(mesh.current.modelViewMatrix.invert());
+        worldPos.applyMatrix4(props.cameraTransformation);
         worldPos.normalize();
         setWorldPos(worldPos.multiplyScalar(props.radius));
         setInView(false);
-
-        if (props.temperature[props.i][props.j] < 10 && props.temperature[props.i][props.j] > -10)
-            props.temperature[props.i][props.j] += heatCool(worldPos.z);
+        props.temperature[props.i][props.j] += heatCool(worldPos.z);
+        if (props.temperature[props.i][props.j] > 10)
+            props.temperature[props.i][props.j] = 10;
+        if (props.temperature[props.i][props.j] < 0)
+            props.temperature[props.i][props.j] = 0;
 
         setTemp(props.temperature[props.i][props.j]);
         setTempColor((((temperature / 10) * 255) << 16) | ((1 - (temperature / 10)) * 255));
+
     });
 
     return (
@@ -42,7 +46,7 @@ export function Tile(props) {
             ref={mesh}
             scale={1}>
             <sphereGeometry args={[TILE_RADIUS, Number(temperature), Number(temperature)]} />
-            <meshStandardMaterial color={inView ? "yellow" : tempColor} />
+            <meshStandardMaterial color={tempColor} />
         </mesh >
     );
 }
@@ -63,7 +67,7 @@ export function Map(props) {
             const Y_cartesian = props.radius * Math.sin(lat_rad);
             const Z_cartesian = props.radius * Math.cos(lat_rad) * Math.sin(lon_rad);
 
-            tiles.push(<Tile key={keyCounter} position={[X_cartesian, Y_cartesian, Z_cartesian]} radius={props.radius} temperature={temperature} i={i} j={j} />);
+            tiles.push(<Tile key={keyCounter} position={[X_cartesian, Y_cartesian, Z_cartesian]} radius={props.radius} temperature={temperature} i={i} j={j} cameraTransformation={props.cameraTransformation} />);
             keyCounter++;
         }
         temperature.push(row);
@@ -76,7 +80,7 @@ export function Map(props) {
         //            temperature[i][j] -= 0.025;
         //    }
         //}
-        setTemp(updateTemperature(temperature));
+        //setTemp(updateTemperature(temperature));
     });
 
     return (
