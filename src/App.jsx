@@ -3,7 +3,7 @@ import styled from "styled-components";
 import { Canvas } from "@react-three/fiber";
 import { Suspense } from "react";
 import { Earth } from "./components/earth";
-import { TopSection } from "./components/topSection";
+import { OrbitControls } from "@react-three/drei";
 
 const CanvasContainer = styled.div`
   width: 100%;
@@ -13,11 +13,11 @@ const CanvasContainer = styled.div`
 function App() {
   return (
     <CanvasContainer>
-      
       <Canvas>
         <Suspense fallback={null}>
           <Earth />
         </Suspense>
+        <OrbitControls />
       </Canvas>
     </CanvasContainer>
   );
