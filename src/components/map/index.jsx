@@ -2,8 +2,8 @@ import React, { useRef, useState } from "react";
 import { Vector3 } from "three";
 import { useFrame } from "@react-three/fiber";
 
-const LATITUDE_RANGE = 5;
-const LONGITUDE_RANGE = 5;
+const LATITUDE_RANGE = 10;
+const LONGITUDE_RANGE = 10;
 
 const TILE_RADIUS = 0.05;
 
@@ -112,7 +112,7 @@ function initWaterMatrix() {
 
 function updateTemperature(temperature) {
     // Updates the Temperature based on each tile's neighbour temperature
-    let m = JSON.parse(JSON.stringify(temperature));
+    let tempUpdate = Array(LATITUDE_RANGE * LONGITUDE_RANGE * 4);
     for (let i = 0; i < LATITUDE_RANGE * 2; i++) {
         for (let j = 0; j < LONGITUDE_RANGE * 2; j++) {
             let total = 0;
@@ -120,11 +120,18 @@ function updateTemperature(temperature) {
             for (let n = 0; n < 4; n++) {
                 total += temperature[neigh[n][0]][neigh[n][1]];
             }
-            m[i][j] = m[i][j] * 0.8 + total / 4 * 0.2;
+            tempUpdate[i * LATITUDE_RANGE + j] = (total / 4) * 0.003;
         }
     }
-    return JSON.parse(JSON.stringify(m));
+
+    for (let i = 0; i < LATITUDE_RANGE * 2; i++) {
+        for (let j = 0; j < LONGITUDE_RANGE * 2; j++) {
+            temperature[i][j] = temperature[i][j] * 0.997 + tempUpdate[i * LATITUDE_RANGE + j];
+        }
+    }
+    return temperature;
 }
+
 
 function getNeighbours(x, y) {
     let neigh = [[x - 1, y], [x + 1, y], [x, y - 1], [x, y + 1]]
