@@ -4,7 +4,6 @@ import { Canvas } from "@react-three/fiber";
 import { Suspense } from "react";
 import { Earth } from "./components/earth";
 import { TopSection } from "./components/topSection";
-import { Tile, Map } from "./components/map";
 
 const CanvasContainer = styled.div`
   width: 100%;
