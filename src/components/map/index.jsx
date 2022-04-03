@@ -2,17 +2,15 @@ import React, { useRef, useState } from "react";
 import { Vector3 } from "three";
 import { useFrame } from "@react-three/fiber";
 
-const LATITUDE_RANGE = 1;
-const LONGITUDE_RANGE = 1;
+const LATITUDE_RANGE = 10;
+const LONGITUDE_RANGE = 10;
 
 const TILE_RADIUS = 0.05;
 
 const CAMERA_DISTANCE = 100;
 
-const MAP_CENTER_Z = -0.8269265020695281;
-
 function heatCool(zCoord) {
-    return 0.1 * (zCoord - MAP_CENTER_Z);//100 * (1 / ((CAMERA_DISTANCE - zCoord) * (CAMERA_DISTANCE - zCoord))) - (1 / (CAMERA_DISTANCE * CAMERA_DISTANCE));
+    return - 0.05 * (zCoord);//100 * (1 / ((CAMERA_DISTANCE - zCoord) * (CAMERA_DISTANCE - zCoord))) - (1 / (CAMERA_DISTANCE * CAMERA_DISTANCE));
 }
 
 export function Tile(props) {
@@ -26,13 +24,11 @@ export function Tile(props) {
     // Subscribe this component to the render-loop, rotate the mesh every frame
     useFrame((state, delta) => {
         worldPos.copy(mesh.current.position);
-        worldPos.applyMatrix4(mesh.current.matrixWorld);
+        worldPos.applyMatrix4(mesh.current.modelViewMatrix.invert());
         worldPos.applyMatrix4(props.cameraTransformation);
         worldPos.normalize();
         setWorldPos(worldPos.multiplyScalar(props.radius));
         setInView(false);
-        console.log("World Pos:");
-        console.log(worldPos);
         props.temperature[props.i][props.j] += heatCool(worldPos.z);
         if (props.temperature[props.i][props.j] > 10)
             props.temperature[props.i][props.j] = 10;
