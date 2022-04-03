@@ -12,16 +12,19 @@ export function Tile(props) {
     // Hold state for hovered and clicked events
     const [inView, setInView] = useState(false);
     const [worldPos, setWorldPos] = useState(new Vector3());
-    const [temp, setTemp] = useState(0);
-    // Subscribe this component to the render-loop, rotate the mesh every frame
+    const [temperature, setTemp] = useState(0);
+    const [tempColor, setTempColor] = useState(0);
 
+    // Subscribe this component to the render-loop, rotate the mesh every frame
     useFrame((state, delta) => {
         worldPos.copy(mesh.current.position);
         worldPos.applyMatrix4(mesh.current.matrixWorld);
         worldPos.normalize();
-        worldPos.multiplyScalar(props.radius);
+        setWorldPos(worldPos.multiplyScalar(props.radius));
         setInView(worldPos.y > 0.5);
-        setTemp((((props.temperature / 10) * 255) << 16) | ((1 - (props.temperature / 10)) * 255));
+
+        setTemp(props.temperature[props.i][props.j]);
+        setTempColor((((temperature / 10) * 255) << 16) | ((1 - (temperature / 10)) * 255));
     });
 
     return (
@@ -29,15 +32,15 @@ export function Tile(props) {
             {...props}
             ref={mesh}
             scale={1}>
-            <sphereGeometry args={[TILE_RADIUS, Number(props.temperature), Number(props.temperature)]} />
-            <meshStandardMaterial color={inView ? "yellow" : temp} />
+            <sphereGeometry args={[TILE_RADIUS, Number(temperature), Number(temperature)]} />
+            <meshStandardMaterial color={inView ? "yellow" : tempColor} />
         </mesh >
     );
 }
 
 export function Map(props) {
-    
-    let temperature = [];
+
+    const [temperature, setTemp] = useState([]);
     const tiles = [];
     let keyCounter = 0;
 
@@ -51,7 +54,7 @@ export function Map(props) {
             const Y_cartesian = props.radius * Math.cos(lat_rad) * Math.sin(lon_rad);
             const Z_cartesian = props.radius * Math.sin(lat_rad);
 
-            tiles.push(<Tile key={keyCounter} position={[X_cartesian, Y_cartesian, Z_cartesian]} radius={props.radius} temperature={row[j]} />);
+            tiles.push(<Tile key={keyCounter} position={[X_cartesian, Y_cartesian, Z_cartesian]} radius={props.radius} temperature={temperature} i={i} j={j} />);
             keyCounter++;
         }
         temperature.push(row);
@@ -60,11 +63,11 @@ export function Map(props) {
     useFrame((state, delta) => {
         for (let i = 0; i < LATITUDE_RANGE * 2; i++) {
             for (let j = 0; j < LONGITUDE_RANGE * 2; j++) {
-                temperature[i][j] -= 0.025;
+                if (temperature[i][j] > 0)
+                    temperature[i][j] -= 0.025;
             }
         }
-        temperature = temperature.slice();
-        console.log(temperature);
+        setTemp(temperature);
     });
 
     return (
@@ -98,32 +101,32 @@ function initWaterMatrix() {
     return water;
 }
 
-function updateTemperature(temperature){
+function updateTemperature(temperature) {
     // Updates the Temperature based on each tile's neighbour temperature
     let m = JSON.parse(JSON.stringify(temperature));
-    for (let i = 0; i < LATITUDE_RANGE * 2; i++){
-        for(let j = 0; j < LONGITUDE_RANGE * 2; j++){
+    for (let i = 0; i < LATITUDE_RANGE * 2; i++) {
+        for (let j = 0; j < LONGITUDE_RANGE * 2; j++) {
             let total = 0;
             let neigh = getNeighbours(i, j);
-            for(let n = 0; n < 4; n++){
+            for (let n = 0; n < 4; n++) {
                 total += temperature[neigh[n][0]][neigh[n][1]];
             }
-            m[i][j] = m[i][j] * 0.8 + total/4 * 0.2;
+            m[i][j] = m[i][j] * 0.8 + total / 4 * 0.2;
         }
     }
     return JSON.parse(JSON.stringify(m));
 }
 
 function getNeighbours(x, y) {
-    let neigh = [[x-1, y], [x+1, y], [x, y-1], [x, y+1]]
-    for (let n = 0; n < 4; n++){
-        if(neigh[n][0] < 0)
+    let neigh = [[x - 1, y], [x + 1, y], [x, y - 1], [x, y + 1]]
+    for (let n = 0; n < 4; n++) {
+        if (neigh[n][0] < 0)
             neigh[n][0] = LONGITUDE_RANGE * 2 - 1;
-        if(neigh[n][0] === LONGITUDE_RANGE * 2)
+        if (neigh[n][0] === LONGITUDE_RANGE * 2)
             neigh[n][0] = 0;
-        if(neigh[n][1] < 0)
+        if (neigh[n][1] < 0)
             neigh[n][1] = LATITUDE_RANGE * 2 - 1;
-        if(neigh[n][1] === LATITUDE_RANGE * 2)
+        if (neigh[n][1] === LATITUDE_RANGE * 2)
             neigh[n][1] = 0;
     }
     return neigh;
