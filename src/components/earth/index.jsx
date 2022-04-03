@@ -1,12 +1,10 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState,useLayoutEffect } from "react";
 import { useFrame, useLoader } from "@react-three/fiber";
-import { OrbitControls, Stars } from "@react-three/drei";
+import { Stars } from "@react-three/drei";
+import glsl from "babel-plugin-glsl/macro";
 import * as THREE from "three";
-
-//import EarthDayMap from "../../assets/textures/8k_earth_daymap.jpg";
-//import EarthNormalMap from "../../assets/textures/8k_earth_normal_map.jpg";
-//import EarthSpecularMap from "../../assets/textures/8k_earth_specular_map.jpg";
-//import EarthCloudsMap from "../../assets/textures/8k_earth_clouds.jpg";
+import fireImg from '../../assets/fire.png'
+import waveShaderMaterial from './materials'
 
 
 export function Earth(props) {
@@ -33,12 +31,14 @@ export function Earth(props) {
   // Subscribe this component to the render-loop, rotate the mesh every frame
   const code = useCodes()
   useFrame((state, delta) => {
+    ref.current.material.uniforms.time.value = state.clock.elapsedTime;
     (ref.current.rotation.x += 0.0015);(ref.current.rotation.y += 0.0015)
     if (code.current.has('KeyW')) ref.current.rotation.x += 0.02
     if (code.current.has('KeyA')) ref.current.rotation.y += 0.02
     if (code.current.has('KeyS')) ref.current.rotation.x -= 0.02
     if (code.current.has('KeyD')) ref.current.rotation.y -= 0.02
-  })
+  });
+
   // Return the view, these are regular Threejs elements expressed in JSX
   return (
     <>
@@ -53,7 +53,7 @@ export function Earth(props) {
         fade={true}
       />
       <group ref={ref} position={props.position}></group>
-        <mesh
+      <mesh
           ref={ref}
           {...props}
           onClick={(event) => {console.log("click happens")}}
@@ -63,10 +63,9 @@ export function Earth(props) {
           onPointerUp={(e) => {console.log('Clicked: False');setClicked(false)}}
           onPointerMove={(e) => {console.log('Dragging Detected')}}
           scale={[1.7, 1.7, 1.7]}>
-        <sphereGeometry args={[1, 12, 12]} />
-        <meshStandardMaterial color={!hovered ? '#FFBF55' : '#FFAF0F'} />
+      <sphereGeometry args={[1, 12, 12]} />
+      <waveShaderMaterial color={"blue"} ref={ref} />
       </mesh>
     </>
   );
-  }
-  
+}
