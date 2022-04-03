@@ -2,15 +2,17 @@ import React, { useRef, useState } from "react";
 import { Vector3 } from "three";
 import { useFrame } from "@react-three/fiber";
 
-const LATITUDE_RANGE = 5;
-const LONGITUDE_RANGE = 5;
+const LATITUDE_RANGE = 1;
+const LONGITUDE_RANGE = 1;
 
 const TILE_RADIUS = 0.05;
 
-const CAMERA_DISTANCE = 10;
+const CAMERA_DISTANCE = 100;
+
+const MAP_CENTER_Z = -0.8269265020695281;
 
 function heatCool(zCoord) {
-    return (1 / ((CAMERA_DISTANCE - zCoord) * (CAMERA_DISTANCE - zCoord))) - (1 / (CAMERA_DISTANCE * CAMERA_DISTANCE));
+    return 0.1 * (zCoord - MAP_CENTER_Z);//100 * (1 / ((CAMERA_DISTANCE - zCoord) * (CAMERA_DISTANCE - zCoord))) - (1 / (CAMERA_DISTANCE * CAMERA_DISTANCE));
 }
 
 export function Tile(props) {
@@ -25,15 +27,21 @@ export function Tile(props) {
     useFrame((state, delta) => {
         worldPos.copy(mesh.current.position);
         worldPos.applyMatrix4(mesh.current.matrixWorld);
+        worldPos.applyMatrix4(props.cameraTransformation);
         worldPos.normalize();
         setWorldPos(worldPos.multiplyScalar(props.radius));
         setInView(false);
-
-        if (props.temperature[props.i][props.j] < 10 && props.temperature[props.i][props.j] > -10)
-            props.temperature[props.i][props.j] += heatCool(worldPos.z);
+        console.log("World Pos:");
+        console.log(worldPos);
+        props.temperature[props.i][props.j] += heatCool(worldPos.z);
+        if (props.temperature[props.i][props.j] > 10)
+            props.temperature[props.i][props.j] = 10;
+        if (props.temperature[props.i][props.j] < 0)
+            props.temperature[props.i][props.j] = 0;
 
         setTemp(props.temperature[props.i][props.j]);
         setTempColor((((temperature / 10) * 255) << 16) | ((1 - (temperature / 10)) * 255));
+
     });
 
     return (
@@ -42,7 +50,7 @@ export function Tile(props) {
             ref={mesh}
             scale={1}>
             <sphereGeometry args={[TILE_RADIUS, Number(temperature), Number(temperature)]} />
-            <meshStandardMaterial color={inView ? "yellow" : tempColor} />
+            <meshStandardMaterial color={tempColor} />
         </mesh >
     );
 }
@@ -63,7 +71,7 @@ export function Map(props) {
             const Y_cartesian = props.radius * Math.sin(lat_rad);
             const Z_cartesian = props.radius * Math.cos(lat_rad) * Math.sin(lon_rad);
 
-            tiles.push(<Tile key={keyCounter} position={[X_cartesian, Y_cartesian, Z_cartesian]} radius={props.radius} temperature={temperature} i={i} j={j} />);
+            tiles.push(<Tile key={keyCounter} position={[X_cartesian, Y_cartesian, Z_cartesian]} radius={props.radius} temperature={temperature} i={i} j={j} cameraTransformation={props.cameraTransformation} />);
             keyCounter++;
         }
         temperature.push(row);
@@ -76,7 +84,7 @@ export function Map(props) {
         //            temperature[i][j] -= 0.025;
         //    }
         //}
-        setTemp(updateTemperature(temperature));
+        //setTemp(updateTemperature(temperature));
     });
 
     return (
@@ -120,7 +128,7 @@ function updateTemperature(temperature) {
             for (let n = 0; n < 4; n++) {
                 total += temperature[neigh[n][0]][neigh[n][1]];
             }
-            m[i][j] = m[i][j] * 0.8 + total / 4 * 0.2;
+            m[i][j] = m[i][j] * 0.997 + (total / 4) * 0.003;
         }
     }
     return JSON.parse(JSON.stringify(m));

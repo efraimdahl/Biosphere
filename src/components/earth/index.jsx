@@ -13,8 +13,9 @@ export function Earth(props) {
 
   const ref = useRef()
   // Hold state for hovered and clicked events
-  const [hovered, setHovered] = useState(false)
-  const [clicked, setClicked] = useState(false)
+  const [hovered, setHovered] = useState(false);
+  const [clicked, setClicked] = useState(false);
+  const [cameraTransformation, setCameraTransformation] = useState(new THREE.Matrix4());
   // Set up keyboard coltrols (source: https://codesandbox.io/s/wft0n?file=/src/WasdControls)
   const useCodes = () => {
     const codes = useRef(new Set())
@@ -33,8 +34,10 @@ export function Earth(props) {
   // Subscribe this component to the render-loop, rotate the mesh every frame
   const code = useCodes()
   useFrame((state, delta) => {
+    setCameraTransformation(cameraTransformation.copy(ref.current.modelViewMatrix));
+
     ref.current.material.uniforms.time.value = state.clock.elapsedTime;
-    (ref.current.rotation.x += 0.0015); (ref.current.rotation.y += 0.0015)
+    //(ref.current.rotation.x += 0.0015); (ref.current.rotation.y += 0.0015)
     if (code.current.has('KeyW')) ref.current.rotation.x += 0.02
     if (code.current.has('KeyA')) ref.current.rotation.y += 0.02
     if (code.current.has('KeyS')) ref.current.rotation.x -= 0.02
@@ -67,7 +70,7 @@ export function Earth(props) {
         scale={[1.7, 1.7, 1.7]}>
         <sphereGeometry args={[RADIUS, 12, 12]} />
         <waveShaderMaterial color={"blue"} ref={ref} />
-        <Map radius={RADIUS} />
+        <Map radius={RADIUS} cameraTransformation={cameraTransformation} />
       </mesh>
 
     </>
