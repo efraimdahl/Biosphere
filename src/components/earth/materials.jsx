@@ -38,14 +38,17 @@ class WaveShaderMaterial extends THREE.ShaderMaterial {
             uniform float time;
             void main() {
               vec2 uv = vUv;
-              float cb = floor((uv.x + time) * 40.);
-              vec3 color = vec3(0.0,0.0,1.0);
-              vec2 cp = -1.0 + 2.0 * uv.xy;
-              float cl = length(cp);
-              vec2 change = uv + (cp / cl) * cos(cl * 12.0 - time * 4.0) * 0.02;
-              color.x += change.x;
-              color.y += change.y;  
-              gl_FragColor = vec4(color,1.);
+              vec3 col = vec4(uv,0.5+0.5*sin(time),1.0).xyz;
+              vec3 texcol;
+              vec2 center = vec2(0.5,0.5);
+              vec2 go = vec2((center.x-uv.x),(center.y-uv.y) * 0.5);
+              //float r = -sqrt(x*x + y*y); //uncoment this line to symmetric ripples
+              float r = -(go.x + go.y);
+              float z = 1.0 + 0.5*sin((r+time*0.4)/0.013);
+              texcol.x = z;
+              texcol.y = z;
+              texcol.z = z;
+	            gl_FragColor = vec4(col*texcol,1.0);
             }`,
       })
     }
@@ -210,6 +213,21 @@ function Fire({ color, ...props }) {
     }
   }
   
+  fragmentShader: glsl`
+            precision mediump float;
+            varying vec2 vUv;
+            uniform float time;
+            void main() {
+              vec2 uv = vUv;
+              float cb = floor((uv.x + time) * 40.);
+              vec3 color = vec3(0.0,0.0,1.0);
+              vec2 cp = -1.0 + 2.0 * uv.xy;
+              float cl = length(cp);
+              vec2 change = uv + (cp / cl) * cos(cl * 12.0 - time * 4.0) * 0.02;
+              color.x += change.x;
+              color.y += change.y;  
+              gl_FragColor = vec4(color,1.);
+            }`,
   */
     
 
