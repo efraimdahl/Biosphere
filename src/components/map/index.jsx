@@ -2,12 +2,14 @@ import React, { useRef, useState } from "react";
 import { Vector3 } from "three";
 import { useFrame } from "@react-three/fiber";
 
-const LATITUDE_RANGE = 10;
-const LONGITUDE_RANGE = 10;
+const LATITUDE_RANGE = 18;
+const LONGITUDE_RANGE = 18;
 
 const TILE_RADIUS = 0.05;
 
 const CAMERA_DISTANCE = 100;
+
+const SPHERICALITY = 12;
 
 function heatCool(zCoord) {
     return - 0.05 * (zCoord);//100 * (1 / ((CAMERA_DISTANCE - zCoord) * (CAMERA_DISTANCE - zCoord))) - (1 / (CAMERA_DISTANCE * CAMERA_DISTANCE));
@@ -45,7 +47,7 @@ export function Tile(props) {
             {...props}
             ref={mesh}
             scale={1}>
-            <sphereGeometry args={[TILE_RADIUS, Number(temperature), Number(temperature)]} />
+            <sphereGeometry args={[TILE_RADIUS, SPHERICALITY, SPHERICALITY]} />
             <meshStandardMaterial color={tempColor} />
         </mesh >
     );
