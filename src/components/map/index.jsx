@@ -74,13 +74,7 @@ export function Map(props) {
     }
 
     useFrame((state, delta) => {
-        //for (let i = 0; i < LATITUDE_RANGE * 2; i++) {
-        //    for (let j = 0; j < LONGITUDE_RANGE * 2; j++) {
-        //        if (temperature[i][j] > 0)
-        //            temperature[i][j] -= 0.025;
-        //    }
-        //}
-        //setTemp(updateTemperature(temperature));
+        setTemp(updateTemperature(temperature));
     });
 
     return (
