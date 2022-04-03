@@ -7,6 +7,12 @@ const LONGITUDE_RANGE = 5;
 
 const TILE_RADIUS = 0.05;
 
+const CAMERA_DISTANCE = 10;
+
+function heatCool(zCoord) {
+    return (1 / ((CAMERA_DISTANCE - zCoord) * (CAMERA_DISTANCE - zCoord))) - (1 / (CAMERA_DISTANCE * CAMERA_DISTANCE));
+}
+
 export function Tile(props) {
     const mesh = useRef()
     // Hold state for hovered and clicked events
@@ -21,7 +27,10 @@ export function Tile(props) {
         worldPos.applyMatrix4(mesh.current.matrixWorld);
         worldPos.normalize();
         setWorldPos(worldPos.multiplyScalar(props.radius));
-        setInView(worldPos.y > 0.5);
+        setInView(false);
+
+        if (props.temperature[props.i][props.j] < 10 && props.temperature[props.i][props.j] > -10)
+            props.temperature[props.i][props.j] += heatCool(worldPos.z);
 
         setTemp(props.temperature[props.i][props.j]);
         setTempColor((((temperature / 10) * 255) << 16) | ((1 - (temperature / 10)) * 255));
@@ -51,8 +60,8 @@ export function Map(props) {
             const lat_rad = ((i / LATITUDE_RANGE) - 1) * (Math.PI / 2)
             const lon_rad = (j / LONGITUDE_RANGE) * (Math.PI)
             const X_cartesian = props.radius * Math.cos(lat_rad) * Math.cos(lon_rad);
-            const Y_cartesian = props.radius * Math.cos(lat_rad) * Math.sin(lon_rad);
-            const Z_cartesian = props.radius * Math.sin(lat_rad);
+            const Y_cartesian = props.radius * Math.sin(lat_rad);
+            const Z_cartesian = props.radius * Math.cos(lat_rad) * Math.sin(lon_rad);
 
             tiles.push(<Tile key={keyCounter} position={[X_cartesian, Y_cartesian, Z_cartesian]} radius={props.radius} temperature={temperature} i={i} j={j} />);
             keyCounter++;
@@ -61,13 +70,13 @@ export function Map(props) {
     }
 
     useFrame((state, delta) => {
-        for (let i = 0; i < LATITUDE_RANGE * 2; i++) {
-            for (let j = 0; j < LONGITUDE_RANGE * 2; j++) {
-                if (temperature[i][j] > 0)
-                    temperature[i][j] -= 0.025;
-            }
-        }
-        setTemp(temperature);
+        //for (let i = 0; i < LATITUDE_RANGE * 2; i++) {
+        //    for (let j = 0; j < LONGITUDE_RANGE * 2; j++) {
+        //        if (temperature[i][j] > 0)
+        //            temperature[i][j] -= 0.025;
+        //    }
+        //}
+        setTemp(updateTemperature(temperature));
     });
 
     return (
