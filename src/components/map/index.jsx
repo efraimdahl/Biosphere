@@ -1,87 +1,130 @@
-import React from "react";
-import styled from "styled-components";
+import React, { useRef, useState } from "react";
+import { Vector3 } from "three";
+import { useFrame } from "@react-three/fiber";
 
-const LATITUDE_RANGE = 180;
-const LONGITUDE_RANGE = 180;
+const LATITUDE_RANGE = 5;
+const LONGITUDE_RANGE = 5;
 
-const MapContainer = styled.div`
-    color: white;
-`;
+const TILE_RADIUS = 0.05;
 
-export class Map extends React.Component {
-    constructor() {
-        super();
-        this.state = {
-            temperature: this.initTempMatrix(),
-            water_level: this.initWaterMatrix(),
-        };
-        console.log(this.state.temperature);
-        this.updateTemperature();
-        console.log(this.state.temperature);
-        console.log(this.state.water_level);
-    }
+export function Tile(props) {
+    const mesh = useRef()
+    // Hold state for hovered and clicked events
+    const [inView, setInView] = useState(false);
+    const [worldPos, setWorldPos] = useState(new Vector3());
+    const [temp, setTemp] = useState(0);
+    // Subscribe this component to the render-loop, rotate the mesh every frame
 
-    initTempMatrix() {
-        const temperature = Array();
-        for (let i = 0; i < LATITUDE_RANGE; i++) {
-            let row = Array(LONGITUDE_RANGE);
-            for (let j = 0; j < LONGITUDE_RANGE; j++) {
-                row[j] = Math.random() * 10;
-            }
-            temperature.push(row);
-        }
-        return temperature;
-    }
+    useFrame((state, delta) => {
+        worldPos.copy(mesh.current.position);
+        worldPos.applyMatrix4(mesh.current.matrixWorld);
+        worldPos.normalize();
+        worldPos.multiplyScalar(props.radius);
+        setInView(worldPos.y > 0.5);
+        setTemp((((props.temperature / 10) * 255) << 16) | ((1 - (props.temperature / 10)) * 255));
+    });
+
+    return (
+        <mesh
+            {...props}
+            ref={mesh}
+            scale={1}>
+            <sphereGeometry args={[TILE_RADIUS, Number(props.temperature), Number(props.temperature)]} />
+            <meshStandardMaterial color={inView ? "yellow" : temp} />
+        </mesh >
+    );
+}
+
+export function Map(props) {
     
-    initWaterMatrix() {
-        const water = Array();
-        for (let i = 0; i < LATITUDE_RANGE; i++) {
-            let row = Array(LONGITUDE_RANGE);
-            for (let j = 0; j < LONGITUDE_RANGE; j++) {
-                row[j] = Math.random() * 100;
+    let temperature = [];
+    const tiles = [];
+    let keyCounter = 0;
+
+    for (let i = 0; i < LATITUDE_RANGE * 2; i++) {
+        let row = Array(LONGITUDE_RANGE * 2);
+        for (let j = 0; j < LONGITUDE_RANGE * 2; j++) {
+            row[j] = Math.random() * 10;
+            const lat_rad = ((i / LATITUDE_RANGE) - 1) * (Math.PI / 2)
+            const lon_rad = (j / LONGITUDE_RANGE) * (Math.PI)
+            const X_cartesian = props.radius * Math.cos(lat_rad) * Math.cos(lon_rad);
+            const Y_cartesian = props.radius * Math.cos(lat_rad) * Math.sin(lon_rad);
+            const Z_cartesian = props.radius * Math.sin(lat_rad);
+
+            tiles.push(<Tile key={keyCounter} position={[X_cartesian, Y_cartesian, Z_cartesian]} radius={props.radius} temperature={row[j]} />);
+            keyCounter++;
+        }
+        temperature.push(row);
+    }
+
+    useFrame((state, delta) => {
+        for (let i = 0; i < LATITUDE_RANGE * 2; i++) {
+            for (let j = 0; j < LONGITUDE_RANGE * 2; j++) {
+                temperature[i][j] -= 0.025;
             }
-            water.push(row);
         }
-        return water;
-    }
+        temperature = temperature.slice();
+        console.log(temperature);
+    });
 
-    updateTemperature(){
-        // Updates the Temperature based on each tile's neighbour temperature
-        let m = JSON.parse(JSON.stringify(this.state.temperature));
-        for (let i = 0; i < LATITUDE_RANGE; i++){
-            for(let j = 0; j < LONGITUDE_RANGE; j++){
-                let total = 0;
-                let neigh = this.getNeighbours(i, j);
-                for(let n = 0; n < 4; n++){
-                    total += this.state.temperature[neigh[n][0]][neigh[n][1]];
-                }
-                m[i][j] = m[i][j] * 0.8 + total/4 * 0.2;
+    return (
+        <>
+            {tiles}
+        </>
+    );
+}
+
+function initTempMatrix() {
+    const temperature = Array();
+    for (let i = 0; i < LATITUDE_RANGE; i++) {
+        let row = Array(LONGITUDE_RANGE);
+        for (let j = 0; j < LONGITUDE_RANGE; j++) {
+            row[j] = Math.random() * 10;
+        }
+        temperature.push(row);
+    }
+    return temperature;
+}
+
+function initWaterMatrix() {
+    const water = Array();
+    for (let i = 0; i < LATITUDE_RANGE; i++) {
+        let row = Array(LONGITUDE_RANGE);
+        for (let j = 0; j < LONGITUDE_RANGE; j++) {
+            row[j] = Math.random() * 100;
+        }
+        water.push(row);
+    }
+    return water;
+}
+
+function updateTemperature(temperature){
+    // Updates the Temperature based on each tile's neighbour temperature
+    let m = JSON.parse(JSON.stringify(temperature));
+    for (let i = 0; i < LATITUDE_RANGE * 2; i++){
+        for(let j = 0; j < LONGITUDE_RANGE * 2; j++){
+            let total = 0;
+            let neigh = getNeighbours(i, j);
+            for(let n = 0; n < 4; n++){
+                total += temperature[neigh[n][0]][neigh[n][1]];
             }
+            m[i][j] = m[i][j] * 0.8 + total/4 * 0.2;
         }
-        this.state.temperature = JSON.parse(JSON.stringify(m));
     }
+    return JSON.parse(JSON.stringify(m));
+}
 
-    getNeighbours(x, y) {
-        let neigh = [[x-1, y], [x+1, y], [x, y-1], [x, y+1]]
-        for (let n = 0; n < 4; n++){
-            if(neigh[n][0] < 0)
-                neigh[n][0] = LONGITUDE_RANGE - 1;
-            if(neigh[n][0] == LONGITUDE_RANGE)
-                neigh[n][0] = 0;
-            if(neigh[n][1] < 0)
-                neigh[n][1] = LATITUDE_RANGE - 1;
-            if(neigh[n][1] == LATITUDE_RANGE)
-                neigh[n][1] = 0;
-        }
-        return neigh;
+function getNeighbours(x, y) {
+    let neigh = [[x-1, y], [x+1, y], [x, y-1], [x, y+1]]
+    for (let n = 0; n < 4; n++){
+        if(neigh[n][0] < 0)
+            neigh[n][0] = LONGITUDE_RANGE * 2 - 1;
+        if(neigh[n][0] === LONGITUDE_RANGE * 2)
+            neigh[n][0] = 0;
+        if(neigh[n][1] < 0)
+            neigh[n][1] = LATITUDE_RANGE * 2 - 1;
+        if(neigh[n][1] === LATITUDE_RANGE * 2)
+            neigh[n][1] = 0;
     }
-
-    render() {
-        return (
-            <MapContainer>
-                <h2>Test</h2>
-            </MapContainer>
-        );
-    }
-
+    return neigh;
 }

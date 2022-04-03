@@ -15,13 +15,6 @@ const TopSectionContainer = styled.div`
   z-index: 99;
 `;
 
-const Logo = styled.h1`
-  margin: 0;
-  color: #fff;
-  font-weight: 800;
-  font-size: 80px;
-`;
-
 const Slogan = styled.h4`
   margin: 0;
   color: #fff;
@@ -34,6 +27,6 @@ export function TopSection() {
   return (
     <TopSectionContainer>
       <Slogan>Biosphere</Slogan>
-      </TopSectionContainer>
+    </TopSectionContainer>
   );
 }
