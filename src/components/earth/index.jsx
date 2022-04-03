@@ -1,6 +1,6 @@
 import React, { useRef,useState  } from "react";
-import { useFrame, useLoader } from "@react-three/fiber";
-import { OrbitControls, Stars } from "@react-three/drei";
+import { Canvas, useFrame, useLoader } from "@react-three/fiber";
+import { OrbitControls, Stars, useGLTF, useAnimations} from "@react-three/drei";
 import * as THREE from "three";
 
 //import EarthDayMap from "../../assets/textures/8k_earth_daymap.jpg";
@@ -10,7 +10,7 @@ import * as THREE from "three";
 
 
 export function Earth(props) {
-
+  
   const ref = useRef()
   // Hold state for hovered and clicked events
   const [hovered, hover] = useState(true)
@@ -35,10 +35,10 @@ export function Earth(props) {
         {...props}
         ref={ref}
         scale={clicked ? 1.5 : 1}
-        onClick={(event) => {console.log("click happens");click(!clicked)}}
-        onPointerOver={(event) => {console.log("click happens");hover(true)}}
-        onPointerOut={(event) => {console.log("click happens");hover(false)}}>
-        <sphereGeometry args={[1, 12, 12]} />
+        onClick={(e) => {console.log("click happens")}}
+        onPointerOver={(e) => {console.log("click happens")}}
+        onPointerOut={(e) => {console.log("click happens")}}>
+        <sphereGeometry args={[1, 18, 18]} />
         <meshStandardMaterial color={hovered ? 'orange' : 'hotpink'} />
       </mesh>
     </>

@@ -14,7 +14,7 @@ const CanvasContainer = styled.div`
 function App() {
   return (
     <CanvasContainer>
-      <TopSection />
+      
       <Canvas>
         <Suspense fallback={null}>
           <Earth />
