@@ -1,30 +1,10 @@
-import React, { useRef,useState  } from "react";
-import { extend, useFrame, useLoader } from "@react-three/fiber";
-import {Stars, shaderMaterial } from "@react-three/drei";
+import React, { useRef, useState, useLayoutEffect } from "react";
+import { useFrame, useLoader } from "@react-three/fiber";
+import { Stars } from "@react-three/drei";
 import glsl from "babel-plugin-glsl/macro";
 import * as THREE from "three";
-
-const WaveShaderMaterial = shaderMaterial(
-  //Uniform
-  {uColor: new THREE.Color(0.0,0,0)},
-  // Vertex Shader
-  glsl`
-    void main(){
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
-    }
-  `,
-  //Fragment Shader
-  glsl`
-    uniform vec3 uColor;
-    void main(){
-      gl_FragColor = vec4(uColor,1.0);
-    }
-  `
-
-  
-);
-
-extend({ WaveShaderMaterial})
+import fireImg from '../../assets/fire.png'
+import waveShaderMaterial from './materials'
 
 
 export function Earth(props) {
@@ -34,7 +14,12 @@ export function Earth(props) {
   const [hovered, hover] = useState(true)
   const [clicked, click] = useState(true)
   // Subscribe this component to the render-loop, rotate the mesh every frame
-  //useFrame((state, delta) => (ref.current.rotation.x += 0.01))
+  useFrame((state) => {
+    ref.current.material.uniforms.time.value = state.clock.elapsedTime;
+    ref.current.rotation.y += 0.001;
+    ref.current.rotation.x += 0.001;
+  });
+
   // Return the view, these are regular Threejs elements expressed in JSX
   return (
     <>
@@ -48,18 +33,17 @@ export function Earth(props) {
         saturation={0}
         fade={true}
       />
-  
       <mesh
+
         {...props}
         ref={ref}
         scale={clicked ? 1.5 : 1}
-        onClick={(e) => {console.log("click happens");click(!clicked)}}
-        onPointerOver={(event) => {console.log("click happens");hover(true)}}
-        onPointerOut={(event) => {console.log("click happens");hover(false)}}>
+        onClick={(e) => { console.log("click happens"); click(!clicked) }}
+        onPointerOver={(event) => { console.log("click happens"); hover(true) }}
+        onPointerOut={(event) => { console.log("click happens"); hover(false) }}>
         <sphereGeometry args={[1, 12, 12]} />
-        <waveShaderMaterial uColor={"green"}/>
+        <waveShaderMaterial color={"blue"} ref={ref} />
       </mesh>
     </>
   );
-  }
-  
+}
