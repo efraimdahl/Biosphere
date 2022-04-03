@@ -11,7 +11,9 @@ class WaveShaderMaterial extends THREE.ShaderMaterial {
         uniforms: {
           color: new THREE.Color(0.0, 0.0, 0.0),
           time: { type: 'f', value: 0.0 },
+          tex: {type:'t',value:0.0}
         },
+        
         vertexShader: glsl`
                 precision mediump float;
                 varying vec2 vUv;
@@ -21,10 +23,10 @@ class WaveShaderMaterial extends THREE.ShaderMaterial {
                 void main() {
                   vUv = uv;
                   vec3 pos = position;
-                  float noiseFreq = 2.0;
-                  float noiseAmp = 0.4;
+                  float noiseFreq = 1.0;
+                  float noiseAmp = 0.16;
                   //float rannum = fract(sin(dot(vec2(10,200), vec2(12.9898, 78.233))) * 43758.5453);
-                  vec3 noisePos = vec3(pos.x * noiseFreq *time, pos.y, pos.z);
+                  vec3 noisePos = vec3(pos.x, pos.y* noiseFreq *time, pos.z);
                   pos.z += snoise3(noisePos) * noiseAmp;
                   vWave = pos.z;
                   gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);  
@@ -32,21 +34,28 @@ class WaveShaderMaterial extends THREE.ShaderMaterial {
         //Fragment Shader
         fragmentShader: glsl`
             precision mediump float;
-            uniform vec3 color;
-            uniform float time;
             varying vec2 vUv;
-            
-            void main(){
-              //vec3 pos = position;
-              vec3 colors = vec3(1,0,0)*(sin(time)+1.0);
-              gl_FragColor = vec4(colors,1.0);
+            uniform float time;
+            void main() {
+              vec2 uv = vUv;
+              float cb = floor((uv.x + time) * 40.);
+              vec3 color = vec3(0.0,0.0,1.0);
+              vec2 cp = -1.0 + 2.0 * uv.xy;
+              float cl = length(cp);
+              vec2 change = uv + (cp / cl) * cos(cl * 12.0 - time * 4.0) * 0.02;
+              color.x += change.x;
+              color.y += change.y;  
+              gl_FragColor = vec4(color,1.);
             }`,
       })
     }
   }
   
-  extend({ WaveShaderMaterial })
+
+
   
+  extend({ WaveShaderMaterial })
+      
   class FireMaterial extends THREE.ShaderMaterial {
     constructor() {
       super({
@@ -159,6 +168,48 @@ function Fire({ color, ...props }) {
       </mesh>
     )
   }
+
+  class WaveShaderMaterial extends THREE.ShaderMaterial {
+    //Uniform
+    constructor() {
+      super({
+        defines: { ITERATIONS: '20', OCTIVES: '3' },
+        uniforms: {
+          color: new THREE.Color(0.0, 0.0, 0.0),
+          time: { type: 'f', value: 0.0 },
+        },
+        vertexShader: glsl`
+                precision mediump float;
+                varying vec2 vUv;
+                varying float vWave;
+                uniform float time;
+                #pragma glslify: snoise3 = require(glsl-noise/simplex/3d);
+                void main() {
+                  vUv = uv;
+                  vec3 pos = position;
+                  float noiseFreq = 2.0;
+                  float noiseAmp = 0.4;
+                  //float rannum = fract(sin(dot(vec2(10,200), vec2(12.9898, 78.233))) * 43758.5453);
+                  vec3 noisePos = vec3(pos.x * noiseFreq *time, pos.y, pos.z);
+                  pos.z += snoise3(noisePos) * noiseAmp;
+                  vWave = pos.z;
+                  gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);  
+                }`,
+        //Fragment Shader
+        fragmentShader: glsl`
+            precision mediump float;
+            uniform vec3 color;
+            uniform float time;
+            varying vec2 vUv;
+            void main(){
+              //vec3 pos = position;
+              vec3 colors = vec3(1,0,0)*(sin(time)+1.0);
+              gl_FragColor = vec4(colors,1.0);
+            }`,
+      })
+    }
+  }
+  
   */
     
 

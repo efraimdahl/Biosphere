@@ -4,7 +4,7 @@ import { Stars } from "@react-three/drei";
 import glsl from "babel-plugin-glsl/macro";
 import * as THREE from "three";
 import fireImg from '../../assets/fire.png'
-import waveShaderMaterial from './materials'
+import {waveShaderMaterial,fireMaterial} from './materials'
 import { Map } from "../map"
 
 const RADIUS = 1;
@@ -43,6 +43,10 @@ export function Earth(props) {
     if (code.current.has('KeyS')) ref.current.rotation.x -= 0.02
     if (code.current.has('KeyD')) ref.current.rotation.y -= 0.02
   });
+  const [image] = useLoader(THREE.TextureLoader, [
+    "https://raw.githubusercontent.com/ipenywis/react-3d-earth/master/src/assets/textures/8k_earth_normal_map.jpg"
+  ]);
+
 
   // Return the view, these are regular Threejs elements expressed in JSX
   return (
@@ -69,7 +73,7 @@ export function Earth(props) {
         onPointerMove={(e) => { console.log('Dragging Detected') }}
         scale={[1.7, 1.7, 1.7]}>
         <sphereGeometry args={[RADIUS, 12, 12]} />
-        <waveShaderMaterial color={"blue"} ref={ref} />
+        <waveShaderMaterial color={"blue"} ref={ref} tex={image} />
         <Map radius={RADIUS} cameraTransformation={cameraTransformation} />
       </mesh>
 
