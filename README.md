@@ -1,6 +1,6 @@
 # Experiments with GLS Shaders and Interactive 3D in React
 
-![](Shaded.png)
+![](Shaded.jpg)
 
 
 Hackathon entry for UChicagos [Uncommon Hacks](https://uncommonhacks.com/) where we built a react app utilizing [three.js](https://threejs.org/)/[react three fiber](https://github.com/pmndrs/react-three-fiber) and glsl shaders to make an interactive shaded sphere for the browser. 
