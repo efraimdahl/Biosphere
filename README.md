@@ -1,3 +1,15 @@
+# Experiments with GLS Shaders and Interactive 3D in React
+
+![](Shaded.png)
+
+
+Hackathon entry for UChicagos [Uncommon Hacks](https://uncommonhacks.com/) where we built a react app utilizing [three.js](https://threejs.org/)/[react three fiber](https://github.com/pmndrs/react-three-fiber) and glsl shaders to make an interactive shaded sphere for the browser. 
+
+We translated this shader from shadertoy:  [Awesome Star] (https://www.shadertoy.com/view/4lfSzS) by =by [Panteleymonov Aleksandr Konstantinovich](http://www.panteleymonov.ru/home_eng.html). To see how this is done, compare the `WaveShaderMaterial` class in `src/components/earth/materials.jsx` to the code in shader toy, its mostly about renaming some global input variables, and providing default values for others. 
+
+To see how the variables for the shader from the page are passed along, check out the `src\components\earth\index.jsx` file as well. 
+
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
